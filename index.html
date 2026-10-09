@@ -64,7 +64,7 @@ body{
 .screen{display:none;flex:1;flex-direction:column}
 .screen.is-active{display:flex;animation:screenIn .55s cubic-bezier(.2,.9,.3,1)}
 @keyframes screenIn{0%{opacity:0;transform:translateY(20px) scale(.985);filter:blur(8px)}100%{opacity:1;transform:none;filter:none}}
-.hero{flex:1;display:flex;flex-direction:column;justify-content:center;gap:30px;padding-bottom:22px}
+.hero{flex:1;display:flex;flex-direction:column;justify-content:center;gap:26px;padding-bottom:22px}
 .kicker{display:inline-flex;align-items:center;gap:10px;align-self:flex-start;font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;padding:9px 15px;border:1px solid var(--accent);background:#000;color:var(--ink);position:relative;}
 .kicker::after{content:'';position:absolute;top:-1px;left:-1px;width:8px;height:8px;border-top:2px solid var(--acid);border-left:2px solid var(--acid)}
 .kicker i{width:6px;height:6px;background:var(--accent-2);box-shadow:0 0 10px var(--accent-2);animation:blink 1s steps(2) infinite}
@@ -81,6 +81,7 @@ h1 .acid{color:var(--acid);text-shadow:0 0 30px rgba(212,255,0,.6),2px 0 0 var(-
 .rounds__label{font-size:10px;font-weight:700;letter-spacing:.3em;color:var(--dim);text-transform:uppercase;display:flex;align-items:center;gap:10px;}
 .rounds__label::after{content:'';flex:1;height:1px;background:var(--line)}
 .rounds__opts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.rounds__opts--2{grid-template-columns:repeat(2,1fr)}
 .round-opt{padding:18px 12px;cursor:pointer;border:1px solid var(--line);background:#050505;display:flex;flex-direction:column;align-items:center;gap:6px;transition:all .2s cubic-bezier(.2,.8,.2,1);font-family:inherit;color:var(--ink);position:relative;overflow:hidden;}
 .round-opt::before{content:'';position:absolute;inset:0;background:var(--accent);transform:translateY(100%);transition:transform .3s cubic-bezier(.2,.8,.2,1);z-index:-1;opacity:.85}
 .round-opt:hover{border-color:var(--accent);transform:translateY(-2px)}
@@ -129,7 +130,9 @@ h1 .acid{color:var(--acid);text-shadow:0 0 30px rgba(212,255,0,.6),2px 0 0 var(-
 .vinyl{width:124px;height:124px;border-radius:50%;flex:0 0 auto;position:relative;background:repeating-radial-gradient(circle at 50% 50%,#161616 0 2px,#000 2px 4.5px);box-shadow:0 0 0 1px rgba(196,8,8,.7),0 0 0 3px #000,0 0 0 4px rgba(255,255,255,.06),0 22px 46px rgba(0,0,0,.95),inset 0 0 34px rgba(0,0,0,.98);}
 .vinyl::after{content:'';position:absolute;inset:40%;border-radius:50%;background:var(--accent);box-shadow:0 0 26px rgba(196,8,8,1),2px 0 0 #00ffff,-2px 0 0 var(--acid)}
 .vinyl.spin{animation:spin 2.4s linear infinite}
+.vinyl.spin-rev{animation:spin-rev 2.4s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes spin-rev{to{transform:rotate(-360deg)}}
 .deck__body{flex:1;min-width:0;display:flex;flex-direction:column;gap:16px;position:relative;z-index:1}
 .deck__top{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .stage{font-family:'Anton',sans-serif;font-size:15px;letter-spacing:.2em;padding:9px 16px;border:1.5px solid var(--accent);color:var(--ink);background:#000;white-space:nowrap;text-transform:uppercase;box-shadow:4px 4px 0 var(--accent);position:relative}
@@ -194,8 +197,9 @@ h1 .acid{color:var(--acid);text-shadow:0 0 30px rgba(212,255,0,.6),2px 0 0 var(-
   box-shadow:4px 4px 0 var(--accent);
 }
 .input-submit:disabled{opacity:.3;cursor:not-allowed}
-.progress{height:3px;background:#0f0f0f;overflow:hidden}
+.progress{height:3px;background:#0f0f0f;overflow:hidden;position:relative}
 .progress__fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--acid));box-shadow:0 0 14px rgba(196,8,8,.9)}
+.progress.rev .progress__fill{background:linear-gradient(270deg,var(--accent),var(--acid))}
 .answers{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
 .answer{display:flex;align-items:center;gap:14px;text-align:left;cursor:pointer;padding:18px 16px;border:1px solid var(--line);border-left:3px solid var(--accent);background:#050505;color:var(--ink);font-family:'JetBrains Mono';font-weight:700;font-size:13px;line-height:1.35;letter-spacing:.02em;transition:all .18s cubic-bezier(.2,.8,.2,1);position:relative;overflow:hidden}
 .answer::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(196,8,8,.18),transparent 60%);transform:translateX(-101%);transition:transform .3s cubic-bezier(.2,.8,.2,1)}
@@ -272,7 +276,7 @@ h1 .acid{color:var(--acid);text-shadow:0 0 30px rgba(212,255,0,.6),2px 0 0 var(-
         за <span class="acid">1</span> сек
       </h1>
 
-      <p>Слушаешь начало трека. Не угадал — дают <b>2 секунды</b>. Снова мимо — <em>3 секунды</em>. Три промаха — раунд сгорает и −50 очков.</p>
+      <p>Слушаешь сниппет трека. Не угадал — дают <b>следующую длину</b>. Три промаха — раунд сгорает и −50 очков.</p>
 
       <div class="rounds">
         <div class="rounds__label">Сколько раундов</div>
@@ -311,10 +315,40 @@ h1 .acid{color:var(--acid);text-shadow:0 0 30px rgba(212,255,0,.6),2px 0 0 var(-
         </div>
       </div>
 
+      <!-- ============ РЕЖИМ ВОСПРОИЗВЕДЕНИЯ ============ -->
+      <div class="rounds">
+        <div class="rounds__label">Режим воспроизведения</div>
+        <div class="rounds__opts rounds__opts--2" id="playOpts">
+          <button type="button" class="round-opt is-active" data-play="normal">
+            <span class="round-opt__num">▶</span>
+            <span class="round-opt__lbl">Обычный</span>
+          </button>
+          <button type="button" class="round-opt" data-play="reverse">
+            <span class="round-opt__num">◀</span>
+            <span class="round-opt__lbl">Реверс</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ============ ДЛИТЕЛЬНОСТЬ СНИППЕТА ============ -->
+      <div class="rounds">
+        <div class="rounds__label">Длительность сниппета</div>
+        <div class="rounds__opts rounds__opts--2" id="durOpts">
+          <button type="button" class="round-opt" data-dur="short">
+            <span class="round-opt__num">1·2·3</span>
+            <span class="round-opt__lbl">Коротко</span>
+          </button>
+          <button type="button" class="round-opt is-active" data-dur="mid">
+            <span class="round-opt__num">5·10·15</span>
+            <span class="round-opt__lbl">Классика</span>
+          </button>
+        </div>
+      </div>
+
       <div class="rules">
-        <div class="rule"><div class="rule__num">1″</div><div class="rule__lbl">Ступень 1</div><div class="rule__pts">+100 очков</div></div>
-        <div class="rule"><div class="rule__num">2″</div><div class="rule__lbl">Ступень 2</div><div class="rule__pts">+60 очков</div></div>
-        <div class="rule"><div class="rule__num">3″</div><div class="rule__lbl">Ступень 3</div><div class="rule__pts">+30 очков</div></div>
+        <div class="rule"><div class="rule__num" id="ruleNum1">5″</div><div class="rule__lbl">Ступень 1</div><div class="rule__pts">+100 очков</div></div>
+        <div class="rule"><div class="rule__num" id="ruleNum2">10″</div><div class="rule__lbl">Ступень 2</div><div class="rule__pts">+60 очков</div></div>
+        <div class="rule"><div class="rule__num" id="ruleNum3">15″</div><div class="rule__lbl">Ступень 3</div><div class="rule__pts">+30 очков</div></div>
       </div>
     </div>
 
@@ -336,7 +370,7 @@ h1 .acid{color:var(--acid);text-shadow:0 0 30px rgba(212,255,0,.6),2px 0 0 var(-
       <div class="vinyl" id="vinyl"></div>
       <div class="deck__body">
         <div class="deck__top">
-          <div class="stage" id="stageBadge">1 СЕК</div>
+          <div class="stage" id="stageBadge">5 СЕК</div>
           <div class="eq" id="eq"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
         </div>
         <button class="play-btn" id="playBtn">
@@ -357,7 +391,7 @@ h1 .acid{color:var(--acid);text-shadow:0 0 30px rgba(212,255,0,.6),2px 0 0 var(-
           <button type="button" class="input-submit" id="submitBtn">ОК</button>
         </div>
 
-        <div class="progress"><div class="progress__fill" id="progressFill"></div></div>
+        <div class="progress" id="progressBar"><div class="progress__fill" id="progressFill"></div></div>
       </div>
     </div>
 
@@ -450,10 +484,12 @@ const TRACKS = [
 /* ==========================================================
    НАСТРОЙКИ
    ========================================================== */
-const STAGES = [1, 2, 3];
 const POINTS = [100, 60, 30];
 let TOTAL_ROUNDS = 10;
 let ANSWER_MODE = 'choice';
+let PLAY_MODE = 'normal';      // 'normal' | 'reverse'
+let DUR_MODE = 'mid';          // 'short' | 'mid'
+let STAGES = [5, 10, 15];
 
 /* ==========================================================
    ЛОГИКА
@@ -466,7 +502,8 @@ const S = {
   queue: [], idx: 0, score: 0, streak: 0,
   attempts: 0, locked: true, current: null,
   snippetTimer: null, playing: false,
-  hintUsed: false, mode: 'choice'
+  hintUsed: false, mode: 'choice',
+  reverseBuffer: null, audioCtx: null, audioSource: null
 };
 
 const shuffle = a => {
@@ -487,17 +524,6 @@ function normalize(s){
     .replace(/\s+/g, ' ');
 }
 
-/* убираем всё лишнее и приводим к нижнему регистру */
-function normalize(s){
-  return String(s)
-    .toLowerCase()
-    .replace(/ё/g, 'е')
-    .replace(/[^\p{L}\p{N}]+/gu, ' ')
-    .trim()
-    .replace(/\s+/g, ' ');
-}
-
-/* все "куски" названия — по тире, скобкам, запятым */
 function chunks(s){
   const n = normalize(s);
   const parts = n.split(/[\-–—―(),\[\]]+/g)
@@ -506,10 +532,6 @@ function chunks(s){
   return parts.length ? parts : [n];
 }
 
-/* ответ верный, если:
-   - полностью совпал с названием,
-   - совпал с любым куском названия,
-   - является частью любого куска (но не короче 2 символов) */
 function isCorrectAnswer(input, correctTitle){
   const a = normalize(input);
   if (!a || a.length < 2) return false;
@@ -520,7 +542,7 @@ function isCorrectAnswer(input, correctTitle){
   const parts = chunks(correctTitle);
   for (const p of parts){
     if (a === p) return true;
-    if (p.includes(a) && a.length >= 3) return true;   // «сучка» ⊂ «сучка 2»
+    if (p.includes(a) && a.length >= 3) return true;
     if (a.includes(p) && p.length >= 3) return true;
   }
   return false;
@@ -554,6 +576,12 @@ function updateHud(){
   $('#hudCombo').textContent = '×' + (S.streak >= 3 ? 2 : 1);
 }
 
+function updateRulesUI(){
+  $('#ruleNum1').textContent = STAGES[0] + '″';
+  $('#ruleNum2').textContent = STAGES[1] + '″';
+  $('#ruleNum3').textContent = STAGES[2] + '″';
+}
+
 /* ---------- ВЫБОР РАУНДОВ ---------- */
 document.querySelectorAll('#roundsOpts .round-opt').forEach(btn => {
   btn.addEventListener('click', (e) => {
@@ -572,6 +600,30 @@ document.querySelectorAll('#modeOpts .round-opt').forEach(btn => {
     document.querySelectorAll('#modeOpts .round-opt').forEach(b => b.classList.remove('is-active'));
     btn.classList.add('is-active');
     ANSWER_MODE = btn.dataset.mode;
+    flashGlitch();
+  });
+});
+
+/* ---------- ВЫБОР РЕЖИМА ВОСПРОИЗВЕДЕНИЯ ---------- */
+document.querySelectorAll('#playOpts .round-opt').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.querySelectorAll('#playOpts .round-opt').forEach(b => b.classList.remove('is-active'));
+    btn.classList.add('is-active');
+    PLAY_MODE = btn.dataset.play;
+    flashGlitch();
+  });
+});
+
+/* ---------- ВЫБОР ДЛИТЕЛЬНОСТИ ---------- */
+document.querySelectorAll('#durOpts .round-opt').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.querySelectorAll('#durOpts .round-opt').forEach(b => b.classList.remove('is-active'));
+    btn.classList.add('is-active');
+    DUR_MODE = btn.dataset.dur;
+    STAGES = DUR_MODE === 'short' ? [1, 2, 3] : [5, 10, 15];
+    updateRulesUI();
     flashGlitch();
   });
 });
@@ -622,6 +674,8 @@ function loadRound(){
   $('#playBtn').disabled = false;
   $('#playLbl').textContent = 'СЛУШАТЬ';
   $('#nextBtn').hidden = true;
+  $('#vinyl').classList.toggle('spin-rev', PLAY_MODE === 'reverse');
+  $('#progressBar').classList.toggle('rev', PLAY_MODE === 'reverse');
   applyMode();
   updateHud();
   buildAnswers();
@@ -749,33 +803,77 @@ function nextRound(){
   loadRound();
 }
 
-/* ---------- АУДИО ---------- */
-function playSnippet(seconds){
+/* ---------- АУДИО (обычный / реверс) ---------- */
+async function playSnippet(seconds){
   if (!S.current) return;
   stopAudio();
   const t = S.current;
-  audio.src = t.src;
 
-  audio.oncanplay = () => {
-    audio.oncanplay = null;
-    try { audio.currentTime = t.start || 0; } catch(e){}
-    audio.play().then(() => {
-      setPlaying(true);
-      startProgress(seconds);
-      S.snippetTimer = setTimeout(stopAudio, seconds * 1000);
-    }).catch(() => toast('Не удалось воспроизвести: ' + t.src));
-  };
-  audio.onerror = () => {
-    toast('Файл не найден: ' + t.src);
+  if (PLAY_MODE === 'normal'){
+    audio.src = t.src;
+    audio.oncanplay = () => {
+      audio.oncanplay = null;
+      try { audio.currentTime = t.start || 0; } catch(e){}
+      audio.play().then(() => {
+        setPlaying(true);
+        startProgress(seconds);
+        S.snippetTimer = setTimeout(stopAudio, seconds * 1000);
+      }).catch(() => toast('Не удалось воспроизвести: ' + t.src));
+    };
+    audio.onerror = () => {
+      toast('Файл не найден: ' + t.src);
+      setPlaying(false);
+    };
+    audio.load();
+    return;
+  }
+
+  /* REVERSE через Web Audio API */
+  try {
+    if (!S.audioCtx) S.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (S.audioCtx.state === 'suspended') await S.audioCtx.resume();
+
+    // если для этого трека уже есть реверс-буфер — используем
+    let rev = S.reverseBuffer;
+    if (!rev || rev.__src !== t.src){
+      const resp = await fetch(t.src);
+      const buf = await resp.arrayBuffer();
+      const decoded = await S.audioCtx.decodeAudioData(buf);
+
+      rev = S.audioCtx.createBuffer(decoded.numberOfChannels, decoded.length, decoded.sampleRate);
+      for (let ch = 0; ch < decoded.numberOfChannels; ch++){
+        const src = decoded.getChannelData(ch);
+        const dst = rev.getChannelData(ch);
+        const n = src.length;
+        for (let i = 0; i < n; i++) dst[i] = src[n - 1 - i];
+      }
+      rev.__src = t.src;
+      S.reverseBuffer = rev;
+    }
+
+    const src = S.audioCtx.createBufferSource();
+    src.buffer = rev;
+    src.connect(S.audioCtx.destination);
+    src.start(0, 0, seconds);
+
+    S.audioSource = src;
+    setPlaying(true);
+    startProgress(seconds);
+    S.snippetTimer = setTimeout(stopAudio, seconds * 1000);
+  } catch(e){
+    toast('Реверс не получился: ' + e.message);
     setPlaying(false);
-  };
-  audio.load();
+  }
 }
 
 function stopAudio(){
   clearTimeout(S.snippetTimer);
   S.snippetTimer = null;
   if (!audio.paused) audio.pause();
+  if (S.audioSource){
+    try { S.audioSource.stop(); } catch(e){}
+    S.audioSource = null;
+  }
   setPlaying(false);
   freezeProgress();
 }
@@ -783,7 +881,9 @@ function stopAudio(){
 function setPlaying(on){
   S.playing = on;
   $('#eq').classList.toggle('on', on);
-  $('#vinyl').classList.toggle('spin', on);
+  const vinyl = $('#vinyl');
+  vinyl.classList.toggle('spin', on && PLAY_MODE !== 'reverse');
+  vinyl.classList.toggle('spin-rev', on && PLAY_MODE === 'reverse');
   $('#playLbl').textContent = on ? 'СТОП' : 'СЛУШАТЬ';
 }
 
@@ -848,7 +948,7 @@ function endGame(){
   stopAudio();
   $('#endScore').textContent = S.score;
 
-  const max = S.queue.length * POINTS[0];
+   const max = S.queue.length * POINTS[0];
   const pct = Math.round(S.score / max * 100);
 
   let rank = 'НОВИЧОК';
@@ -907,6 +1007,7 @@ document.addEventListener('keydown', e => {
   const best = Number(localStorage.getItem('tc_best') || 0);
   if (best > 0) $('#bestHint').textContent = 'ТВОЙ РЕКОРД: ' + best + ' ОЧКОВ';
   if (TRACKS.length < 4) $('#bestHint').textContent = '⚠ ДОБАВЬ МИНИМУМ 4 ТРЕКА В МАССИВ TRACKS';
+  updateRulesUI();
 })();
 </script>
 </body>
