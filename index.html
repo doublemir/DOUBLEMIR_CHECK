@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DOUBLEMIR — CHECK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Bodoni+Moda:ital,opsz,wght@1,6..96,400;1,6..96,700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#000;--ink:#f2f2f2;--dim:#5a5a5a;--line:#1a1a1a;
+  --accent:#c40808;--accent-2:#ff2b2b;--acid:#d4ff00;
+  --ok:#00ff88;--bad:#ff2e4d;
+}
+html,body{height:100%}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:'JetBrains Mono',monospace;
+  min-height:100dvh;overflow-x:hidden;
+  display:flex;flex-direction:column;position:relative;cursor:crosshair;
+}
+.grain{position:fixed;inset:-100%;z-index:9998;pointer-events:none;opacity:.14;mix-blend-mode:screen;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='4'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation:grain .35s steps(2) infinite;}
+@keyframes grain{0%{transform:translate(0,0)}25%{transform:translate(-2%,1%)}50%{transform:translate(1%,-2%)}75%{transform:translate(-1%,-1%)}100%{transform:translate(2%,1%)}}
+.scan{position:fixed;inset:0;z-index:9997;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.4) 0px,rgba(0,0,0,.4) 1px,transparent 1px,transparent 3px);
+  mix-blend-mode:multiply;}
+.vhs-bar{position:fixed;left:0;right:0;height:6vh;z-index:9996;pointer-events:none;
+  background:linear-gradient(180deg,transparent,rgba(196,8,8,.18),rgba(255,255,255,.05),transparent);
+  mix-blend-mode:screen;animation:vhsMove 6s linear infinite;}
+@keyframes vhsMove{0%{top:-10%}100%{top:110%}}
+.glitch-flash{position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:0;
+  background:linear-gradient(90deg,var(--accent) 0%,transparent 8%,transparent 92%,#00ffff 100%);
+  mix-blend-mode:screen;}
+.glitch-flash.fire{animation:flash .18s ease-out}
+@keyframes flash{0%{opacity:.9}100%{opacity:0}}
+.bg-glitch{position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.5;
+  background:radial-gradient(ellipse at 15% 20%, rgba(196,8,8,.25), transparent 55%),
+             radial-gradient(ellipse at 85% 80%, rgba(196,8,8,.18), transparent 55%);}
+.hex{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.035;
+  background-image:linear-gradient(rgba(255,255,255,.6) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.6) 1px,transparent 1px);
+  background-size:44px 44px;}
+.watermark{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-4deg);
+  font-family:'Anton',sans-serif;font-size:clamp(140px,28vw,400px);
+  color:transparent;-webkit-text-stroke:1.5px rgba(196,8,8,.14);
+  letter-spacing:-.05em;white-space:nowrap;pointer-events:none;z-index:-1;user-select:none;text-transform:uppercase;}
+.sys-tag{position:fixed;font-family:'JetBrains Mono';font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--dim);z-index:100;pointer-events:none;}
+.sys-tag.tl{top:16px;left:18px}
+.sys-tag.tr{top:16px;right:18px;text-align:right}
+.sys-tag.bl{bottom:16px;left:18px}
+.sys-tag.br{bottom:16px;right:18px;text-align:right;color:var(--accent)}
+.sys-tag i{display:inline-block;width:6px;height:6px;background:var(--accent);border-radius:50%;margin-right:6px;vertical-align:middle;animation:blink 1s steps(2) infinite;box-shadow:0 0 8px var(--accent)}
+@keyframes blink{50%{opacity:0}}
+.wrap{width:100%;max-width:780px;margin:0 auto;padding:50px 22px 70px;flex:1;display:flex;flex-direction:column;position:relative;z-index:1;}
+.brand{display:flex;align-items:center;gap:14px;margin-bottom:42px}
+.brand__mark{width:46px;height:46px;flex:0 0 auto;background:#000;border:1.5px solid var(--accent);display:grid;place-items:center;position:relative;font-family:'Anton',sans-serif;font-size:22px;color:var(--ink);letter-spacing:-.05em;}
+.brand__mark::before{content:'';position:absolute;inset:0;background:var(--accent);opacity:.16}
+.brand__mark::after{content:'';position:absolute;inset:-4px;border:1px solid var(--accent);opacity:.4}
+.brand__txt{font-family:'Anton',sans-serif;letter-spacing:.2em;font-size:15px;text-transform:uppercase}
+.brand__txt span{color:var(--accent);text-shadow:0 0 14px rgba(196,8,8,.9)}
+.screen{display:none;flex:1;flex-direction:column}
+.screen.is-active{display:flex;animation:screenIn .55s cubic-bezier(.2,.9,.3,1)}
+@keyframes screenIn{0%{opacity:0;transform:translateY(20px) scale(.985);filter:blur(8px)}100%{opacity:1;transform:none;filter:none}}
+.hero{flex:1;display:flex;flex-direction:column;justify-content:center;gap:30px;padding-bottom:22px}
+.kicker{display:inline-flex;align-items:center;gap:10px;align-self:flex-start;font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;padding:9px 15px;border:1px solid var(--accent);background:#000;color:var(--ink);position:relative;}
+.kicker::after{content:'';position:absolute;top:-1px;left:-1px;width:8px;height:8px;border-top:2px solid var(--acid);border-left:2px solid var(--acid)}
+.kicker i{width:6px;height:6px;background:var(--accent-2);box-shadow:0 0 10px var(--accent-2);animation:blink 1s steps(2) infinite}
+.kicker b{color:var(--acid)}
+h1{position:relative;line-height:.86;letter-spacing:-.04em;font-size:clamp(48px,13vw,110px);text-transform:uppercase;font-family:'Anton',sans-serif;color:var(--ink);}
+h1 .ghost{display:block;font-family:'Bodoni Moda',serif;font-style:italic;font-weight:400;font-size:1.05em;color:transparent;-webkit-text-stroke:1px var(--ink);transform:scaleY(1.4) translateX(-.04em);transform-origin:left center;margin-bottom:-.15em;opacity:.85;}
+h1 em{font-style:normal;font-family:'Anton',sans-serif;color:var(--ink);position:relative;display:inline-block}
+h1 em::before{content:attr(data-text);position:absolute;top:0;left:2px;color:var(--accent);z-index:-1;text-shadow:-2px 0 0 var(--accent),2px 0 0 #00ffff;opacity:.9}
+h1 .acid{color:var(--acid);text-shadow:0 0 30px rgba(212,255,0,.6),2px 0 0 var(--accent),-2px 0 0 #00ffff}
+.hero p{color:var(--dim);font-size:13px;line-height:1.9;max-width:560px;font-weight:400;letter-spacing:.02em}
+.hero p b{color:var(--ink);font-weight:700}
+.hero p em{color:var(--accent-2);font-style:normal;font-weight:700}
+.rounds{display:flex;flex-direction:column;gap:12px}
+.rounds__label{font-size:10px;font-weight:700;letter-spacing:.3em;color:var(--dim);text-transform:uppercase;display:flex;align-items:center;gap:10px;}
+.rounds__label::after{content:'';flex:1;height:1px;background:var(--line)}
+.rounds__opts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.round-opt{padding:18px 12px;cursor:pointer;border:1px solid var(--line);background:#050505;display:flex;flex-direction:column;align-items:center;gap:6px;transition:all .2s cubic-bezier(.2,.8,.2,1);font-family:inherit;color:var(--ink);position:relative;overflow:hidden;}
+.round-opt::before{content:'';position:absolute;inset:0;background:var(--accent);transform:translateY(100%);transition:transform .3s cubic-bezier(.2,.8,.2,1);z-index:-1;opacity:.85}
+.round-opt:hover{border-color:var(--accent);transform:translateY(-2px)}
+.round-opt:hover::before{transform:translateY(60%)}
+.round-opt__num{font-family:'Anton',sans-serif;font-size:34px;line-height:1;letter-spacing:-.04em;position:relative;z-index:1}
+.round-opt__lbl{font-size:9px;font-weight:700;letter-spacing:.24em;color:var(--dim);text-transform:uppercase;position:relative;z-index:1}
+.round-opt.is-active{border-color:var(--accent);background:#0a0000}
+.round-opt.is-active::before{transform:translateY(70%)}
+.round-opt.is-active .round-opt__num{color:var(--ink);text-shadow:2px 0 0 var(--accent),-2px 0 0 #00ffff}
+.round-opt.is-active .round-opt__lbl{color:var(--acid)}
+.rules{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.rule{border:1px solid var(--line);background:#050505;padding:18px 14px;position:relative;overflow:hidden;transition:all .22s cubic-bezier(.2,.8,.2,1)}
+.rule::before{content:'';position:absolute;top:0;left:0;width:100%;height:2px;background:var(--accent)}
+.rule:nth-child(2)::before{background:var(--acid)}
+.rule:nth-child(3)::before{background:var(--accent-2)}
+.rule::after{content:'';position:absolute;bottom:6px;right:6px;width:6px;height:6px;background:var(--accent);opacity:.7}
+.rule:hover{border-color:var(--accent);transform:translateY(-2px)}
+.rule__num{font-family:'Anton',sans-serif;font-size:34px;line-height:1;letter-spacing:-.04em}
+.rule:nth-child(1) .rule__num{color:var(--ink)}
+.rule:nth-child(2) .rule__num{color:var(--acid);text-shadow:0 0 20px rgba(212,255,0,.5)}
+.rule:nth-child(3) .rule__num{color:var(--accent-2);text-shadow:0 0 20px rgba(255,43,43,.5)}
+.rule__lbl{font-size:9px;font-weight:700;letter-spacing:.24em;color:var(--dim);margin-top:12px;text-transform:uppercase}
+.rule__pts{font-size:10px;font-weight:700;color:var(--ink);margin-top:5px;letter-spacing:.08em}
+.btn{font-family:'Anton',sans-serif;text-transform:uppercase;letter-spacing:.16em;font-size:18px;padding:22px 34px;border:1.5px solid var(--accent);background:#000;color:var(--ink);cursor:pointer;width:100%;position:relative;overflow:hidden;box-shadow:6px 6px 0 var(--accent);transition:all .2s cubic-bezier(.2,.8,.2,1);}
+.btn::before{content:'';position:absolute;inset:0;background:var(--accent);transform:translateX(-101%);transition:transform .4s cubic-bezier(.2,.8,.2,1);z-index:-1}
+.btn:hover::before{transform:translateX(0)}
+.btn:hover{transform:translate(-3px,-3px);box-shadow:11px 11px 0 var(--accent-2);text-shadow:2px 0 0 rgba(0,0,0,.7),-2px 0 0 rgba(0,255,255,.5)}
+.btn:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--accent)}
+.btn--ghost{background:transparent;border:1.5px solid var(--line);color:var(--dim);box-shadow:none}
+.btn--ghost::before{display:none}
+.btn--ghost:hover{border-color:var(--accent);color:var(--ink);box-shadow:none;transform:none;text-shadow:2px 0 0 var(--accent),-2px 0 0 #00ffff}
+.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-bottom:18px;border:1px solid var(--line)}
+.hud__item{padding:13px 16px;display:flex;flex-direction:column;gap:6px;position:relative;border-right:1px solid var(--line)}
+.hud__item:last-child{border-right:none}
+.hud__item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--accent)}
+.hud__item:nth-child(2)::before{background:var(--acid)}
+.hud__item:nth-child(3)::before{background:var(--accent-2)}
+.hud__item:nth-child(4)::before{background:var(--acid)}
+.hud__lbl{font-size:9px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--dim)}
+.hud__val{font-family:'Anton',sans-serif;font-size:24px;line-height:1;letter-spacing:-.03em;color:var(--ink)}
+.hud__val.acid{color:var(--acid);text-shadow:2px 0 0 var(--accent),-2px 0 0 #00ffff,0 0 24px rgba(212,255,0,.5)}
+.hud__val.gold{color:var(--ink);text-shadow:2px 0 0 var(--accent),-2px 0 0 #00ffff,0 0 24px rgba(196,8,8,.7)}
+.deck{border:1px solid var(--line);background:#050505;padding:24px;display:flex;align-items:center;gap:24px;margin-bottom:16px;position:relative;overflow:hidden}
+.deck::before{content:'';position:absolute;top:-50%;right:-10%;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(196,8,8,.55),transparent 70%);pointer-events:none}
+.deck::after{content:'REC ●';position:absolute;top:12px;right:14px;font-size:9px;font-weight:700;letter-spacing:.24em;color:var(--accent-2);animation:blink 1s steps(2) infinite}
+.vinyl{width:124px;height:124px;border-radius:50%;flex:0 0 auto;position:relative;background:repeating-radial-gradient(circle at 50% 50%,#161616 0 2px,#000 2px 4.5px);box-shadow:0 0 0 1px rgba(196,8,8,.7),0 0 0 3px #000,0 0 0 4px rgba(255,255,255,.06),0 22px 46px rgba(0,0,0,.95),inset 0 0 34px rgba(0,0,0,.98);}
+.vinyl::after{content:'';position:absolute;inset:40%;border-radius:50%;background:var(--accent);box-shadow:0 0 26px rgba(196,8,8,1),2px 0 0 #00ffff,-2px 0 0 var(--acid)}
+.vinyl.spin{animation:spin 2.4s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.deck__body{flex:1;min-width:0;display:flex;flex-direction:column;gap:16px;position:relative;z-index:1}
+.deck__top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.stage{font-family:'Anton',sans-serif;font-size:15px;letter-spacing:.2em;padding:9px 16px;border:1.5px solid var(--accent);color:var(--ink);background:#000;white-space:nowrap;text-transform:uppercase;box-shadow:4px 4px 0 var(--accent);position:relative}
+.stage.pulse{animation:pulse .7s cubic-bezier(.2,.8,.2,1)}
+@keyframes pulse{0%{transform:scale(1)}40%{transform:scale(1.14);box-shadow:6px 6px 0 var(--acid);text-shadow:2px 0 0 var(--accent),-2px 0 0 #00ffff}100%{transform:scale(1)}}
+.eq{display:flex;gap:3px;align-items:flex-end;height:36px}
+.eq i{width:3px;height:7px;background:var(--accent);opacity:.3;transition:opacity .25s;box-shadow:0 0 8px rgba(196,8,8,.6)}
+.eq.on i{opacity:1;animation:eq .8s ease-in-out infinite}
+.eq.on i:nth-child(2){animation-delay:.1s}
+.eq.on i:nth-child(3){animation-delay:.2s}
+.eq.on i:nth-child(4){animation-delay:.3s}
+.eq.on i:nth-child(5){animation-delay:.15s}
+.eq.on i:nth-child(6){animation-delay:.25s}
+.eq.on i:nth-child(7){animation-delay:.05s}
+@keyframes eq{0%,100%{height:7px}50%{height:36px}}
+.play-btn{display:flex;align-items:center;justify-content:center;gap:12px;font-family:'Anton',sans-serif;font-size:16px;letter-spacing:.18em;text-transform:uppercase;padding:17px 24px;border:1.5px solid var(--acid);background:#000;color:var(--ink);cursor:pointer;width:100%;box-shadow:5px 5px 0 var(--acid);transition:all .18s cubic-bezier(.2,.8,.2,1);position:relative;overflow:hidden}
+.play-btn::before{content:'';position:absolute;inset:0;background:var(--acid);transform:translateX(-101%);transition:transform .4s cubic-bezier(.2,.8,.2,1);z-index:-1}
+.play-btn:hover:not(:disabled)::before{transform:translateX(0)}
+.play-btn:hover:not(:disabled){transform:translate(-2px,-2px);box-shadow:8px 8px 0 var(--accent);color:#000;text-shadow:none}
+.play-btn:active:not(:disabled){transform:translate(2px,2px);box-shadow:2px 2px 0 var(--acid)}
+.play-btn:disabled{opacity:.22;cursor:not-allowed;box-shadow:none}
+.play-btn svg{width:15px;height:15px;fill:currentColor}
+.hint-btn{
+  margin-top:8px;width:100%;padding:12px 18px;cursor:pointer;
+  font-family:'JetBrains Mono';font-size:11px;font-weight:700;
+  letter-spacing:.18em;text-transform:uppercase;
+  background:#000;color:var(--acid);
+  border:1.5px dashed var(--acid);
+  transition:all .18s cubic-bezier(.2,.8,.2,1);
+}
+.hint-btn:hover:not(:disabled){
+  background:var(--acid);color:#000;
+  box-shadow:4px 4px 0 var(--accent);
+}
+.hint-btn:disabled{opacity:.22;cursor:not-allowed}
+.input-wrap{display:flex;gap:8px;margin-top:8px}
+.answer-input{
+  flex:1;min-width:0;
+  padding:15px 16px;
+  font-family:'JetBrains Mono';font-weight:700;font-size:13px;
+  letter-spacing:.08em;text-transform:uppercase;
+  background:#000;color:var(--ink);
+  border:1.5px solid var(--acid);
+  outline:none;
+  transition:box-shadow .18s,border-color .18s;
+}
+.answer-input:focus{
+  border-color:var(--accent-2);
+  box-shadow:0 0 0 3px rgba(196,8,8,.25);
+}
+.answer-input::placeholder{color:#333;text-transform:uppercase}
+.answer-input.correct{border-color:var(--ok);box-shadow:0 0 30px -6px rgba(0,255,136,.7)}
+.answer-input.wrong{border-color:var(--bad);animation:shake .45s}
+.input-submit{
+  font-family:'Anton',sans-serif;font-size:15px;letter-spacing:.14em;
+  padding:0 22px;border:1.5px solid var(--acid);
+  background:#000;color:var(--acid);cursor:pointer;
+  transition:all .18s cubic-bezier(.2,.8,.2,1);
+}
+.input-submit:hover:not(:disabled){
+  background:var(--acid);color:#000;
+  box-shadow:4px 4px 0 var(--accent);
+}
+.input-submit:disabled{opacity:.3;cursor:not-allowed}
+.progress{height:3px;background:#0f0f0f;overflow:hidden}
+.progress__fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--acid));box-shadow:0 0 14px rgba(196,8,8,.9)}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.answer{display:flex;align-items:center;gap:14px;text-align:left;cursor:pointer;padding:18px 16px;border:1px solid var(--line);border-left:3px solid var(--accent);background:#050505;color:var(--ink);font-family:'JetBrains Mono';font-weight:700;font-size:13px;line-height:1.35;letter-spacing:.02em;transition:all .18s cubic-bezier(.2,.8,.2,1);position:relative;overflow:hidden}
+.answer::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(196,8,8,.18),transparent 60%);transform:translateX(-101%);transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.answer:hover:not(:disabled)::before{transform:translateX(0)}
+.answer:hover:not(:disabled){transform:translateX(5px);border-left-color:var(--acid);box-shadow:-8px 0 24px -8px rgba(196,8,8,.6)}
+.answer:disabled{cursor:default}
+.answer__num{width:32px;height:32px;flex:0 0 auto;display:grid;place-items:center;font-family:'Anton',sans-serif;font-size:15px;background:#000;border:1px solid var(--accent);color:var(--accent-2);letter-spacing:.02em;text-shadow:0 0 8px rgba(196,8,8,.8);position:relative;z-index:1}
+.answer__title{min-width:0;overflow:hidden;text-overflow:ellipsis;position:relative;z-index:1}
+.answer.correct{border-color:var(--ok);border-left-color:var(--ok);background:rgba(0,255,136,.08);box-shadow:0 0 40px -6px rgba(0,255,136,.7)}
+.answer.correct .answer__num{background:var(--ok);color:#000;border-color:var(--ok);text-shadow:none}
+.answer.wrong{border-color:var(--bad);border-left-color:var(--bad);background:rgba(255,46,77,.08);animation:shake .45s}
+.answer.wrong .answer__num{background:var(--bad);color:#000;border-color:var(--bad);text-shadow:none}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+.final{flex:1;display:flex;flex-direction:column;justify-content:center;gap:28px;text-align:center;align-items:center}
+.final__lbl{font-size:11px;font-weight:700;letter-spacing:.36em;text-transform:uppercase;color:var(--dim)}
+.final__score{font-family:'Anton',sans-serif;font-size:clamp(90px,26vw,180px);line-height:.85;letter-spacing:-.05em;color:var(--ink);text-shadow:4px 0 0 var(--accent),-4px 0 0 #00ffff,0 0 60px rgba(196,8,8,.9)}
+.final__sub{color:var(--dim);font-size:13px;line-height:1.9;max-width:460px;letter-spacing:.03em}
+.final__sub b{color:var(--acid);font-family:'Anton',sans-serif;font-weight:400;letter-spacing:.08em;font-size:16px}
+.float{position:fixed;transform:translate(-50%,-50%);pointer-events:none;z-index:99;font-family:'Anton',sans-serif;font-size:38px;color:var(--ink);letter-spacing:-.02em;text-shadow:3px 0 0 var(--accent),-3px 0 0 #00ffff,0 0 30px rgba(212,255,0,.8);animation:floatUp 1.1s cubic-bezier(.2,.8,.2,1) forwards}
+.float.minus{color:var(--bad);text-shadow:3px 0 0 var(--accent),-3px 0 0 #00ffff,0 0 30px rgba(255,46,77,.9)}
+@keyframes floatUp{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}25%{opacity:1;transform:translate(-50%,-95%) scale(1.18)}100%{opacity:0;transform:translate(-50%,-240%) scale(1)}}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#000;border:1.5px solid var(--accent);color:var(--ink);padding:14px 22px;font-size:12px;font-weight:700;letter-spacing:.08em;z-index:200;max-width:90vw;text-align:center;box-shadow:5px 5px 0 var(--accent);animation:screenIn .3s}
+.hint{text-align:center;font-size:10px;letter-spacing:.18em;color:var(--dim);margin-top:auto;padding-top:24px;font-weight:700;text-transform:uppercase}
+.hint kbd{display:inline-block;padding:3px 8px;background:#0a0a0a;border:1px solid var(--accent);color:var(--acid);font-family:'Anton',sans-serif;font-size:12px;letter-spacing:.06em;margin:0 3px;text-shadow:1px 0 0 var(--accent)}
+@media(max-width:540px){
+  .answers{grid-template-columns:1fr}
+  .vinyl{width:92px;height:92px}
+  .deck{padding:18px;gap:16px}
+  .hud{grid-template-columns:repeat(2,1fr)}
+  .hud__item{border-bottom:1px solid var(--line)}
+  .hud__item:nth-child(2){border-right:none}
+  .hud__item:nth-child(3),.hud__item:nth-child(4){border-bottom:none}
+  .hud__val{font-size:19px}
+  .rules{gap:8px}
+  .rule{padding:14px 11px}
+  .rule__num{font-size:26px}
+  .watermark{font-size:clamp(90px,40vw,220px)}
+  .btn{font-size:16px;padding:19px 26px}
+  .round-opt__num{font-size:26px}
+  .sys-tag{font-size:8px;letter-spacing:.2em}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-glitch"></div>
+<div class="hex"></div>
+<div class="watermark">DOUBLEMIR</div>
+<div class="grain"></div>
+<div class="scan"></div>
+<div class="vhs-bar"></div>
+<div class="glitch-flash" id="glitchFlash"></div>
+
+<div class="sys-tag tl"><i></i>REC · OPIUM · v2.0</div>
+<div class="sys-tag tr">AUDIO: ACTIVE</div>
+<div class="sys-tag bl">CH 01 · 44.1kHz</div>
+<div class="sys-tag br">● LIVE</div>
+
+<div class="wrap">
+
+  <div class="brand">
+    <div class="brand__mark">DM</div>
+    <div class="brand__txt">DOUBLEMIR <span>ЧЕК</span></div>
+  </div>
+
+  <!-- ============ СТАРТ ============ -->
+  <section class="screen is-active" id="screen-start">
+    <div class="hero">
+      <div class="kicker"><i></i> РЕЖИМ: <b>DOUBLEMIR</b></div>
+
+      <h1>
+        <span class="ghost">угадай</span>
+        <em data-text="трек">трек</em><br>
+        за <span class="acid">1</span> сек
+      </h1>
+
+      <p>Слушаешь начало трека. Не угадал — дают <b>2 секунды</b>. Снова мимо — <em>3 секунды</em>. Три промаха — раунд сгорает и −50 очков.</p>
+
+      <div class="rounds">
+        <div class="rounds__label">Сколько раундов</div>
+        <div class="rounds__opts" id="roundsOpts">
+          <button type="button" class="round-opt" data-rounds="5">
+            <span class="round-opt__num">5</span>
+            <span class="round-opt__lbl">Коротко</span>
+          </button>
+          <button type="button" class="round-opt is-active" data-rounds="10">
+            <span class="round-opt__num">10</span>
+            <span class="round-opt__lbl">Классика</span>
+          </button>
+          <button type="button" class="round-opt" data-rounds="15">
+            <span class="round-opt__num">15</span>
+            <span class="round-opt__lbl">Марафон</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ============ РЕЖИМ ОТВЕТА ============ -->
+      <div class="rounds">
+        <div class="rounds__label">Режим ответа</div>
+        <div class="rounds__opts" id="modeOpts">
+          <button type="button" class="round-opt is-active" data-mode="choice">
+            <span class="round-opt__num">🎯</span>
+            <span class="round-opt__lbl">Выбор</span>
+          </button>
+          <button type="button" class="round-opt" data-mode="input">
+            <span class="round-opt__num">⌨️</span>
+            <span class="round-opt__lbl">Ввод</span>
+          </button>
+          <button type="button" class="round-opt" data-mode="random">
+            <span class="round-opt__num">🎲</span>
+            <span class="round-opt__lbl">Случайно</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="rules">
+        <div class="rule"><div class="rule__num">1″</div><div class="rule__lbl">Ступень 1</div><div class="rule__pts">+100 очков</div></div>
+        <div class="rule"><div class="rule__num">2″</div><div class="rule__lbl">Ступень 2</div><div class="rule__pts">+60 очков</div></div>
+        <div class="rule"><div class="rule__num">3″</div><div class="rule__lbl">Ступень 3</div><div class="rule__pts">+30 очков</div></div>
+      </div>
+    </div>
+
+    <button class="btn" id="startBtn">ВРУБАЙ</button>
+    <div class="hint" id="bestHint"></div>
+  </section>
+
+  <!-- ============ ИГРА ============ -->
+  <section class="screen" id="screen-game">
+
+    <div class="hud">
+      <div class="hud__item"><span class="hud__lbl">Раунд</span><span class="hud__val" id="hudRound">01/10</span></div>
+      <div class="hud__item"><span class="hud__lbl">Очки</span><span class="hud__val acid" id="hudScore">0</span></div>
+      <div class="hud__item"><span class="hud__lbl">Серия</span><span class="hud__val gold" id="hudStreak">0</span></div>
+      <div class="hud__item"><span class="hud__lbl">Комбо</span><span class="hud__val gold" id="hudCombo">×1</span></div>
+    </div>
+
+    <div class="deck">
+      <div class="vinyl" id="vinyl"></div>
+      <div class="deck__body">
+        <div class="deck__top">
+          <div class="stage" id="stageBadge">1 СЕК</div>
+          <div class="eq" id="eq"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+        <button class="play-btn" id="playBtn">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          <span id="playLbl">СЛУШАТЬ</span>
+        </button>
+        <button class="hint-btn" id="hintBtn">🎯 50/50 · −40 очков</button>
+
+        <div class="input-wrap" id="inputWrap" hidden>
+          <input
+            type="text"
+            id="answerInput"
+            class="answer-input"
+            placeholder="НАПИШИ НАЗВАНИЕ..."
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <button type="button" class="input-submit" id="submitBtn">ОК</button>
+        </div>
+
+        <div class="progress"><div class="progress__fill" id="progressFill"></div></div>
+      </div>
+    </div>
+
+    <div class="answers" id="answers"></div>
+    <button class="btn btn--ghost" id="nextBtn" hidden>ДАЛЬШЕ →</button>
+    <div class="hint">
+      <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd> — ответ · <kbd>SPACE</kbd> — слушать · <kbd>H</kbd> — подсказка
+    </div>
+  </section>
+
+  <!-- ============ ИТОГИ ============ -->
+  <section class="screen" id="screen-end">
+    <div class="final">
+      <div class="final__lbl">ФИНАЛЬНЫЙ СЧЁТ</div>
+      <div class="final__score" id="endScore">0</div>
+      <div class="final__sub" id="endSub"></div>
+      <button class="btn" id="againBtn" style="max-width:340px">ЕЩЁ РАЗ</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ==========================================================
+   ТРЕКИ DOUBLEMIR
+   ========================================================== */
+const TRACKS = [
+  { title: "DOUBLEMIR-2026", src: "audio1/DOUBLEMIR - 2026.mp3", start: 0 },
+  { title: "DOUBLEMIR-AAAAA!!!", src: "audio1/DOUBLEMIR - AAAAA___ (archive).mp3", start: 0 },
+  { title: "DOUBLEMIR-ANONIMOUS DOUBLEmir", src: "audio1/DOUBLEMIR - ANONIMOUS DOUBLEmir (freestyle).mp3", start: 0 },
+  { title: "DOUBLEMIR-Bad Star", src: "audio1/DOUBLEMIR - Bad Star.mp3", start: 0 },
+  { title: "DOUBLEMIR-BANG!!!", src: "audio1/DOUBLEMIR - BANG___.mp3", start: 0 },
+  { title: "DOUBLEMIR-EviL", src: "audio1/DOUBLEMIR - EviL.mp3", start: 0 },
+  { title: "DOUBLEMIR-Hello KITTY", src: "audio1/DOUBLEMIR - Hello KITTY (archive).mp3", start: 0 },
+  { title: "DOUBLEMIR-IDI NAXUЙ", src: "audio1/DOUBLEMIR - IDI NAXUЙ.mp3", start: 0 },
+  { title: "DOUBLEMIR-latex", src: "audio1/DOUBLEMIR - latex.mp3", start: 0 },
+  { title: "DOUBLEMIR-MELLSTROY.GAME", src: "audio1/DOUBLEMIR - MELLSTROY.GAME.mp3", start: 0 },
+  { title: "DOUBLEMIR-Project X", src: "audio1/DOUBLEMIR - Project X.mp3", start: 0 },
+  { title: "DOUBLEMIR-pull up", src: "audio1/DOUBLEMIR - pull up.mp3", start: 0 },
+  { title: "DOUBLEMIR-Showbiz", src: "audio1/DOUBLEMIR - Showbiz.mp3", start: 0 },
+  { title: "DOUBLEMIR-SUCHKA", src: "audio1/DOUBLEMIR - SUCHKA (Queen st).mp3", start: 0 },
+  { title: "DOUBLEMIR-TAXI", src: "audio1/DOUBLEMIR - TAXI (archive).mp3", start: 0 },
+  { title: "DOUBLEMIR-vamPIR", src: "audio1/DOUBLEMIR - vamPIR (archive).mp3", start: 0 },
+  { title: "DOUBLEMIR-villainous", src: "audio2/DOUBLEMIR - villainous.mp3", start: 0 },
+  { title: "DOUBLEMIR-АйАйАй", src: "audio2/DOUBLEMIR - АЙ АЙ АЙ.mp3", start: 0 },
+  { title: "DOUBLEMIR-Блондинка", src: "audio2/DOUBLEMIR - блондинка.mp3", start: 0 },
+  { title: "DOUBLEMIR-боль", src: "audio2/DOUBLEMIR - боль.mp3", start: 0 },
+  { title: "DOUBLEMIR-Будешь со мной", src: "audio2/DOUBLEMIR - Будешь со мной.mp3", start: 0 },
+  { title: "DOUBLEMIR-Влиятельный", src: "audio2/DOUBLEMIR - Влиятельный.mp3", start: 0 },
+  { title: "DOUBLEMIR-Газ знакомиться", src: "audio2/DOUBLEMIR - Газ знакомиться.mp3", start: 0 },
+  { title: "DOUBLEMIR-девочка мечты", src: "audio2/DOUBLEMIR - девочка мечты (intro).mp3", start: 0 },
+  { title: "DOUBLEMIR-ДЕНЬГИ", src: "audio2/DOUBLEMIR - ДЕНЬГИ.mp3", start: 0 },
+  { title: "DOUBLEMIR-доля правды", src: "audio2/DOUBLEMIR - доля правды.mp3", start: 0 },
+  { title: "DOUBLEMIR-Егермейстер", src: "audio2/DOUBLEMIR - Егермейстер.mp3", start: 0 },
+  { title: "DOUBLEMIR-Жизнь моя", src: "audio2/DOUBLEMIR - Жизнь моя (Speed up).mp3", start: 0 },
+  { title: "DOUBLEMIR-керасин", src: "audio2/DOUBLEMIR - керасин.mp3", start: 0 },
+  { title: "DOUBLEMIR-Лабубу", src: "audio2/DOUBLEMIR - Лабубу.mp3", start: 0 },
+  { title: "DOUBLEMIR-Лучше", src: "audio2/DOUBLEMIR - Лучше (archive).mp3", start: 0 },
+  { title: "DOUBLEMIR-мне похуй", src: "audio2/DOUBLEMIR - мне похуй.mp3", start: 0 },
+  { title: "DOUBLEMIR-Моя", src: "audio3/DOUBLEMIR - Моя.mp3", start: 0 },
+  { title: "DOUBLEMIR-Наебал", src: "audio3/DOUBLEMIR - Наебал(.mp3", start: 0 },
+  { title: "DOUBLEMIR-Настя Кристмас", src: "audio3/DOUBLEMIR - Настя Кристмас.mp3", start: 0 },
+  { title: "DOUBLEMIR-Пантера", src: "audio3/DOUBLEMIR - Пантера.mp3", start: 0 },
+  { title: "DOUBLEMIR-Похуй ваще", src: "audio3/DOUBLEMIR - Похуй ваще.mp3", start: 0 },
+  { title: "DOUBLEMIR-Секс по телефону", src: "audio3/DOUBLEMIR - Секс по телефону.mp3", start: 0 },
+  { title: "DOUBLEMIR-Сучка 2", src: "audio3/DOUBLEMIR – Сучка 2 (twentythree-Queen St).mp3", start: 0 },
+  { title: "DOUBLEMIR-ПРЫГАЙ ШЛ!ХА", src: "audio3/DOUBLEMIR - ПРЫГАЙ ШЛ_ХА (archive).mp3", start: 0 },
+  { title: "DOUBLEMIR-тварь…", src: "audio3/DOUBLEMIR - тварь….mp3", start: 0 },
+  { title: "DOUBLEMIR-ТОЛЬКО ТАКУЮ", src: "audio3/DOUBLEMIR - ТОЛЬКО ТАКУЮ (archive).mp3", start: 0 },
+  { title: "DOUBLEMIR-Ты", src: "audio3/DOUBLEMIR - Ты (intro_ archive).mp3", start: 0 },
+  { title: "DOUBLEMIR, de sent Bennett-USA MONEY", src: "audio3/DOUBLEMIR_ de sent Bennett - USA MONEY.mp3", start: 0 },
+  { title: "DOUBLEMIR, f1ckit-HAHAHA", src: "audio3/DOUBLEMIR_ f1ckit - HAHAHA.mp3", start: 0 },
+  { title: "DOUBLEMIR, f1ckit-МОДЕЛЬ", src: "audio/DOUBLEMIR_ f1ckit - МОДЕЛЬ.mp3", start: 0 },
+  { title: "DOUBLEMIR, f1ckit-Флоронсе", src: "audio/DOUBLEMIR_ f1ckit - Флоронсе.mp3", start: 0 },
+  { title: "DOUBLEMIR, f1ckit, TOMMYTEMA, vasyapalkiin, DJ ЦЕПЬ-Это я", src: "audio/DOUBLEMIR_ f1ckit_ TOMMYTEMA_ DJ ЦЕПЬ - Это я.mp3", start: 0 },
+  { title: "DOUBLEMIR, Gus-LOVE", src: "audio/DOUBLEMIR_ Gus - LOVE.mp3", start: 0 },
+  { title: "DOUBLEMIR, Muro-Шлюха", src: "audio/DOUBLEMIR_ Muro - Шлюха.mp3", start: 0 },
+  { title: "DOUBLEMIR, nebedolaga-Треп хата", src: "audio/DOUBLEMIR_ nebedolaga - Треп хата.mp3", start: 0 },
+  { title: "DOUBLEMIR, SAKFAER-Yau", src: "audio/DOUBLEMIR_ SAKFAER - Yau.mp3", start: 0 },
+  { title: "DOUBLEMIR, stepanenko-Взгляды под луной", src: "audio/DOUBLEMIR_ stepanenko - Взгляды под луной.mp3", start: 0 },
+  { title: "DOUBLEMIR, W double-clean girl", src: "audio/DOUBLEMIR_ W double - clean girl.mp3", start: 0 },
+  { title: "DOUBLEMIR, weexymep-Точка", src: "audio/DOUBLEMIR_ weexymep - Точка.mp3", start: 0 },
+  { title: "DOUBLEMIR, YMIP-Only SEX", src: "audio/DOUBLEMIR_ YMIP - Only SEX.mp3", start: 0 },
+  { title: "DOUBLEMIR, YMIP-похуй на всех", src: "audio/DOUBLEMIR_ YMIP - похуй на всех.mp3", start: 0 },
+  { title: "DOUBLEMIR, ГОША Г3-RIP", src: "audio/DOUBLEMIR_ ГОША Г3 - RIP.mp3", start: 0 },
+  { title: "DOUBLEMIR-АБВ", src: "audio/DOUBLEMIR_АБВ_suka_eto_takai_xiyna__esli_zaletit_I_budu_delat_rofl.mp3", start: 0 },
+  { title: "DOUBLEMIR, Падший ангел-Bonus", src: "audio/DOUBLEMIR_ Падший ангел - Bonus.mp3", start: 0 },
+];
+
+/* ==========================================================
+   НАСТРОЙКИ
+   ========================================================== */
+const STAGES = [1, 2, 3];
+const POINTS = [100, 60, 30];
+let TOTAL_ROUNDS = 10;
+let ANSWER_MODE = 'choice';
+
+/* ==========================================================
+   ЛОГИКА
+   ========================================================== */
+const $ = s => document.querySelector(s);
+const audio = new Audio();
+audio.preload = 'auto';
+
+const S = {
+  queue: [], idx: 0, score: 0, streak: 0,
+  attempts: 0, locked: true, current: null,
+  snippetTimer: null, playing: false,
+  hintUsed: false, mode: 'choice'
+};
+
+const shuffle = a => {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function normalize(s){
+  return String(s)
+    .toLowerCase()
+    .replace(/ё/g, 'е')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim()
+    .replace(/\s+/g, ' ');
+}
+
+/* убираем всё лишнее и приводим к нижнему регистру */
+function normalize(s){
+  return String(s)
+    .toLowerCase()
+    .replace(/ё/g, 'е')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim()
+    .replace(/\s+/g, ' ');
+}
+
+/* все "куски" названия — по тире, скобкам, запятым */
+function chunks(s){
+  const n = normalize(s);
+  const parts = n.split(/[\-–—―(),\[\]]+/g)
+    .map(x => x.trim())
+    .filter(Boolean);
+  return parts.length ? parts : [n];
+}
+
+/* ответ верный, если:
+   - полностью совпал с названием,
+   - совпал с любым куском названия,
+   - является частью любого куска (но не короче 2 символов) */
+function isCorrectAnswer(input, correctTitle){
+  const a = normalize(input);
+  if (!a || a.length < 2) return false;
+
+  const full = normalize(correctTitle);
+  if (a === full) return true;
+
+  const parts = chunks(correctTitle);
+  for (const p of parts){
+    if (a === p) return true;
+    if (p.includes(a) && a.length >= 3) return true;   // «сучка» ⊂ «сучка 2»
+    if (a.includes(p) && p.length >= 3) return true;
+  }
+  return false;
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(el => el.classList.toggle('is-active', el.id === id));
+}
+
+function toast(msg){
+  const d = document.createElement('div');
+  d.className = 'toast';
+  d.textContent = msg;
+  document.body.appendChild(d);
+  setTimeout(() => d.remove(), 3200);
+}
+
+function flashGlitch(){
+  const g = $('#glitchFlash');
+  g.classList.remove('fire');
+  void g.offsetWidth;
+  g.classList.add('fire');
+}
+
+function updateHud(){
+  $('#hudRound').textContent =
+    String(Math.min(S.idx + 1, S.queue.length)).padStart(2,'0') + '/' +
+    String(S.queue.length).padStart(2,'0');
+  $('#hudScore').textContent = S.score;
+  $('#hudStreak').textContent = S.streak;
+  $('#hudCombo').textContent = '×' + (S.streak >= 3 ? 2 : 1);
+}
+
+/* ---------- ВЫБОР РАУНДОВ ---------- */
+document.querySelectorAll('#roundsOpts .round-opt').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.querySelectorAll('#roundsOpts .round-opt').forEach(b => b.classList.remove('is-active'));
+    btn.classList.add('is-active');
+    TOTAL_ROUNDS = Number(btn.dataset.rounds);
+    flashGlitch();
+  });
+});
+
+/* ---------- ВЫБОР РЕЖИМА ОТВЕТА ---------- */
+document.querySelectorAll('#modeOpts .round-opt').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.querySelectorAll('#modeOpts .round-opt').forEach(b => b.classList.remove('is-active'));
+    btn.classList.add('is-active');
+    ANSWER_MODE = btn.dataset.mode;
+    flashGlitch();
+  });
+});
+
+function roundMode(){
+  if (ANSWER_MODE === 'random') return Math.random() < 0.5 ? 'choice' : 'input';
+  return ANSWER_MODE;
+}
+
+function applyMode(){
+  const isChoice = S.mode === 'choice';
+  $('#answers').hidden = !isChoice;
+  $('#inputWrap').hidden = isChoice;
+
+  if (!isChoice){
+    const inp = $('#answerInput');
+    inp.value = '';
+    inp.className = 'answer-input';
+    inp.disabled = false;
+    $('#submitBtn').disabled = false;
+    setTimeout(() => inp.focus(), 80);
+  }
+}
+
+/* ---------- СТАРТ ИГРЫ ---------- */
+function startGame(){
+  if (TRACKS.length < 4){ toast('Нужно минимум 4 трека в массиве TRACKS'); return; }
+  const pool = shuffle(TRACKS.slice());
+  S.queue = pool.slice(0, Math.min(TOTAL_ROUNDS, pool.length));
+  S.idx = 0; S.score = 0; S.streak = 0;
+  updateHud();
+  showScreen('screen-game');
+  flashGlitch();
+  loadRound();
+}
+
+function loadRound(){
+  if (S.idx >= S.queue.length) return endGame();
+  S.current = S.queue[S.idx];
+  S.attempts = 0;
+  S.locked = false;
+  S.hintUsed = false;
+  S.mode = roundMode();
+  $('#hintBtn').disabled = false;
+  stopAudio();
+  resetProgress();
+  $('#stageBadge').textContent = STAGES[0] + ' СЕК';
+  $('#playBtn').disabled = false;
+  $('#playLbl').textContent = 'СЛУШАТЬ';
+  $('#nextBtn').hidden = true;
+  applyMode();
+  updateHud();
+  buildAnswers();
+}
+
+function buildAnswers(){
+  const wrap = $('#answers');
+  wrap.innerHTML = '';
+  if (S.mode !== 'choice') return;
+
+  const others = shuffle(TRACKS.filter(t => t.title !== S.current.title)).slice(0, 3);
+  const opts = shuffle([S.current, ...others]);
+  opts.forEach((t, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'answer';
+    b.dataset.title = t.title;
+    b.innerHTML = `<span class="answer__num">${i+1}</span><span class="answer__title">${esc(t.title)}</span>`;
+    b.addEventListener('click', () => chooseAnswer(b, t.title));
+    wrap.appendChild(b);
+  });
+}
+
+function registerCorrect(btn, pts){
+  S.locked = true;
+  stopAudio();
+  if (btn) btn.classList.add('correct');
+  S.score += pts;
+  S.streak += 1;
+  updateHud();
+  floatScore(btn || $('#submitBtn') || document.body, '+' + pts);
+  flashGlitch();
+  finishRound();
+}
+
+function registerWrong(btn){
+  if (btn){
+    btn.classList.add('wrong');
+    btn.disabled = true;
+  }
+  S.attempts += 1;
+  S.score = Math.max(0, S.score - 50);
+  updateHud();
+  floatScore(btn || $('#submitBtn') || document.body, '-50', true);
+  flashGlitch();
+
+  if (S.attempts >= STAGES.length){
+    S.locked = true;
+    stopAudio();
+    S.streak = 0;
+    updateHud();
+    finishRound();
+  } else {
+    const secs = STAGES[S.attempts];
+    const badge = $('#stageBadge');
+    badge.textContent = secs + ' СЕК';
+    badge.classList.remove('pulse');
+    void badge.offsetWidth;
+    badge.classList.add('pulse');
+    setTimeout(() => playSnippet(secs), 220);
+  }
+}
+
+function chooseAnswer(btn, title){
+  if (S.locked) return;
+
+  if (title === S.current.title){
+    const mult = S.streak >= 3 ? 2 : 1;
+    registerCorrect(btn, POINTS[S.attempts] * mult);
+  } else {
+    registerWrong(btn);
+  }
+}
+
+/* ---------- ВВОД ОТВЕТА ---------- */
+function submitInput(){
+  if (S.locked || S.mode !== 'input') return;
+  const inp = $('#answerInput');
+  const val = inp.value;
+  if (!val.trim()) return;
+
+  if (isCorrectAnswer(val, S.current.title)){
+    inp.classList.add('correct');
+    inp.disabled = true;
+    $('#submitBtn').disabled = true;
+    const mult = S.streak >= 3 ? 2 : 1;
+    registerCorrect(null, POINTS[S.attempts] * mult);
+  } else {
+    inp.classList.add('wrong');
+    setTimeout(() => inp.classList.remove('wrong'), 500);
+    registerWrong(null);
+  }
+}
+
+$('#submitBtn').addEventListener('click', submitInput);
+$('#answerInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter'){ e.preventDefault(); submitInput(); }
+});
+
+function finishRound(){
+  document.querySelectorAll('.answer').forEach(b => {
+    b.disabled = true;
+    if (b.dataset.title === S.current.title) b.classList.add('correct');
+  });
+  $('#playBtn').disabled = true;
+  $('#hintBtn').disabled = true;
+  $('#nextBtn').hidden = false;
+  $('#nextBtn').textContent = S.idx === S.queue.length - 1 ? 'ИТОГИ →' : 'ДАЛЬШЕ →';
+
+  if (S.mode === 'input'){
+    const inp = $('#answerInput');
+    inp.disabled = true;
+    $('#submitBtn').disabled = true;
+    if (!isCorrectAnswer(inp.value, S.current.title)){
+      inp.value = 'ОТВЕТ: ' + S.current.title;
+      inp.classList.remove('wrong');
+      inp.classList.add('correct');
+    }
+  }
+}
+
+function nextRound(){
+  S.idx += 1;
+  updateHud();
+  loadRound();
+}
+
+/* ---------- АУДИО ---------- */
+function playSnippet(seconds){
+  if (!S.current) return;
+  stopAudio();
+  const t = S.current;
+  audio.src = t.src;
+
+  audio.oncanplay = () => {
+    audio.oncanplay = null;
+    try { audio.currentTime = t.start || 0; } catch(e){}
+    audio.play().then(() => {
+      setPlaying(true);
+      startProgress(seconds);
+      S.snippetTimer = setTimeout(stopAudio, seconds * 1000);
+    }).catch(() => toast('Не удалось воспроизвести: ' + t.src));
+  };
+  audio.onerror = () => {
+    toast('Файл не найден: ' + t.src);
+    setPlaying(false);
+  };
+  audio.load();
+}
+
+function stopAudio(){
+  clearTimeout(S.snippetTimer);
+  S.snippetTimer = null;
+  if (!audio.paused) audio.pause();
+  setPlaying(false);
+  freezeProgress();
+}
+
+function setPlaying(on){
+  S.playing = on;
+  $('#eq').classList.toggle('on', on);
+  $('#vinyl').classList.toggle('spin', on);
+  $('#playLbl').textContent = on ? 'СТОП' : 'СЛУШАТЬ';
+}
+
+/* ---------- ПРОГРЕСС ---------- */
+function startProgress(seconds){
+  const f = $('#progressFill');
+  f.style.transition = 'none';
+  f.style.width = '0%';
+  void f.offsetWidth;
+  f.style.transition = `width ${seconds}s linear`;
+  f.style.width = '100%';
+}
+function freezeProgress(){
+  const f = $('#progressFill');
+  const parent = f.parentElement.getBoundingClientRect().width || 1;
+  const cur = f.getBoundingClientRect().width;
+  f.style.transition = 'none';
+  f.style.width = (cur / parent * 100) + '%';
+}
+function resetProgress(){
+  const f = $('#progressFill');
+  f.style.transition = 'none';
+  f.style.width = '0%';
+}
+
+/* ---------- ОЧКИ ---------- */
+function floatScore(el, text, isMinus){
+  const r = el.getBoundingClientRect();
+  const d = document.createElement('div');
+  d.className = 'float' + (isMinus ? ' minus' : '');
+  d.textContent = text;
+  d.style.left = (r.left + r.width/2) + 'px';
+  d.style.top = (r.top + r.height/2) + 'px';
+  document.body.appendChild(d);
+  setTimeout(() => d.remove(), 1200);
+}
+
+/* ---------- ПОДСКАЗКА 50/50 ---------- */
+$('#hintBtn').addEventListener('click', () => {
+  if (S.locked || S.hintUsed) return;
+  if (S.mode !== 'choice'){ toast('50/50 только в режиме выбора'); return; }
+  S.hintUsed = true;
+
+  S.score = Math.max(0, S.score - 40);
+  updateHud();
+
+  const wrongs = [...document.querySelectorAll('.answer')]
+    .filter(b => !b.disabled && b.dataset.title !== S.current.title);
+  shuffle(wrongs).slice(0, 2).forEach(b => {
+    b.disabled = true;
+    b.style.opacity = '.15';
+    b.style.pointerEvents = 'none';
+  });
+
+  $('#hintBtn').disabled = true;
+  floatScore($('#hintBtn'), '-40', true);
+  flashGlitch();
+});
+
+/* ---------- ИТОГИ ---------- */
+function endGame(){
+  stopAudio();
+  $('#endScore').textContent = S.score;
+
+  const max = S.queue.length * POINTS[0];
+  const pct = Math.round(S.score / max * 100);
+
+  let rank = 'НОВИЧОК';
+  if (pct >= 90) rank = 'ЛЕГЕНДА';
+  else if (pct >= 70) rank = 'ХЕДЛАЙНЕР';
+  else if (pct >= 50) rank = 'ФАНАТ';
+  else if (pct >= 30) rank = 'СЛУШАТЕЛЬ';
+
+  $('#endSub').innerHTML = `РАНГ: <b>${rank}</b> · МАКСИМУМ: ${max}`;
+
+  const best = Number(localStorage.getItem('tc_best') || 0);
+  if (S.score > best){
+    localStorage.setItem('tc_best', S.score);
+    $('#endSub').innerHTML += `<br><b>НОВЫЙ РЕКОРД</b>`;
+  }
+  showScreen('screen-end');
+  flashGlitch();
+}
+
+/* ---------- СОБЫТИЯ ---------- */
+$('#startBtn').addEventListener('click', startGame);
+$('#againBtn').addEventListener('click', startGame);
+$('#nextBtn').addEventListener('click', nextRound);
+
+$('#playBtn').addEventListener('click', () => {
+  if (S.locked) return;
+  if (S.playing){ stopAudio(); return; }
+  playSnippet(STAGES[S.attempts]);
+});
+
+document.addEventListener('keydown', e => {
+  if (!$('#screen-game').classList.contains('is-active')) return;
+
+  // в режиме ввода не перехватываем цифры/буквы в поле
+  const typing = document.activeElement && document.activeElement.id === 'answerInput';
+
+  if (e.code === 'Space' && !typing){
+    e.preventDefault();
+    if (!S.locked && !S.playing) playSnippet(STAGES[S.attempts]);
+    return;
+  }
+  if (e.key === 'Enter' && !$('#nextBtn').hidden){ nextRound(); return; }
+  if (e.key.toLowerCase() === 'h' && !typing){ $('#hintBtn').click(); return; }
+
+  if (S.mode === 'choice'){
+    const n = parseInt(e.key, 10);
+    if (n >= 1 && n <= 4){
+      const btn = document.querySelectorAll('.answer')[n - 1];
+      if (btn && !btn.disabled) btn.click();
+    }
+  }
+});
+
+/* ---------- СТАРТОВЫЙ ЭКРАН ---------- */
+(function init(){
+  const best = Number(localStorage.getItem('tc_best') || 0);
+  if (best > 0) $('#bestHint').textContent = 'ТВОЙ РЕКОРД: ' + best + ' ОЧКОВ';
+  if (TRACKS.length < 4) $('#bestHint').textContent = '⚠ ДОБАВЬ МИНИМУМ 4 ТРЕКА В МАССИВ TRACKS';
+})();
+</script>
+</body>
+</html>
