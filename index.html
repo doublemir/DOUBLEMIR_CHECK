@@ -169,6 +169,7 @@ h1 .acid{color:var(--acid);text-shadow:0 0 30px rgba(212,255,0,.6),2px 0 0 var(-
 }
 .hint-btn:disabled{opacity:.22;cursor:not-allowed}
 .input-wrap{display:flex;gap:8px;margin-top:8px}
+
 .answer-input{
   flex:1;min-width:0;
   padding:15px 16px;
@@ -314,19 +315,7 @@ h1 .acid{color:var(--acid);text-shadow:0 0 30px rgba(212,255,0,.6),2px 0 0 var(-
           </button>
         </div>
       </div>
-<div class="rounds">
-  <div class="rounds__label">Режим воспроизведения</div>
-  <div class="rounds__opts rounds__opts--2" id="playOpts">
-    <button type="button" class="round-opt is-active" data-play="normal">
-      <span class="round-opt__num">▶</span>
-      <span class="round-opt__lbl">Обычный</span>
-    </button>
-    <button type="button" class="round-opt" data-play="reverse">
-      <span class="round-opt__num">◀</span>
-      <span class="round-opt__lbl">Реверс</span>
-    </button>
-  </div>
-</div>
+
       <!-- ============ РЕЖИМ ВОСПРОИЗВЕДЕНИЯ ============ -->
       <div class="rounds">
         <div class="rounds__label">Режим воспроизведения</div>
@@ -341,19 +330,7 @@ h1 .acid{color:var(--acid);text-shadow:0 0 30px rgba(212,255,0,.6),2px 0 0 var(-
           </button>
         </div>
       </div>
-<div class="rounds">
-  <div class="rounds__label">Длительность сниппета</div>
-  <div class="rounds__opts rounds__opts--2" id="durOpts">
-    <button type="button" class="round-opt" data-dur="short">
-      <span class="round-opt__num">1·2·3</span>
-      <span class="round-opt__lbl">Коротко</span>
-    </button>
-    <button type="button" class="round-opt is-active" data-dur="mid">
-      <span class="round-opt__num">5·10·15</span>
-      <span class="round-opt__lbl">Классика</span>
-    </button>
-  </div>
-</div>
+
       <!-- ============ ДЛИТЕЛЬНОСТЬ СНИППЕТА ============ -->
       <div class="rounds">
         <div class="rounds__label">Длительность сниппета</div>
@@ -527,7 +504,8 @@ const S = {
   attempts: 0, locked: true, current: null,
   snippetTimer: null, playing: false,
   hintUsed: false, mode: 'choice',
-  reverseBuffer: null, audioCtx: null, audioSource: null
+  audioCtx: null, audioSource: null,
+  reverseCache: {}
 };
 
 const shuffle = a => {
@@ -659,16 +637,24 @@ function roundMode(){
 
 function applyMode(){
   const isChoice = S.mode === 'choice';
-  $('#answers').hidden = !isChoice;
-  $('#inputWrap').hidden = isChoice;
+  const answers = $('#answers');
+  const inputWrap = $('#inputWrap');
 
-  if (!isChoice){
+  if (isChoice){
+    answers.style.display = 'grid';
+    inputWrap.style.display = 'none';
+    inputWrap.setAttribute('hidden', '');
+  } else {
+    answers.style.display = 'none';
+    inputWrap.removeAttribute('hidden');
+    inputWrap.style.display = 'flex';
+
     const inp = $('#answerInput');
     inp.value = '';
     inp.className = 'answer-input';
     inp.disabled = false;
     $('#submitBtn').disabled = false;
-    setTimeout(() => inp.focus(), 80);
+    setTimeout(function(){ inp.focus(); }, 80);
   }
 }
 
@@ -698,6 +684,7 @@ function loadRound(){
   $('#playBtn').disabled = false;
   $('#playLbl').textContent = 'СЛУШАТЬ';
   $('#nextBtn').hidden = true;
+  applyMode();
   $('#vinyl').classList.toggle('spin-rev', PLAY_MODE === 'reverse');
   $('#progressBar').classList.toggle('rev', PLAY_MODE === 'reverse');
   applyMode();
@@ -707,9 +694,8 @@ function loadRound(){
 
 function buildAnswers(){
   const wrap = $('#answers');
-  wrap.innerHTML = '';
-  if (S.mode !== 'choice') return;
-
+if (S.mode !== 'choice'){ wrap.innerHTML = ''; return; }
+wrap.innerHTML = '';
   const others = shuffle(TRACKS.filter(t => t.title !== S.current.title)).slice(0, 3);
   const opts = shuffle([S.current, ...others]);
   opts.forEach((t, i) => {
@@ -826,66 +812,88 @@ function nextRound(){
   updateHud();
   loadRound();
 }
-
 /* ---------- АУДИО (обычный / реверс) ---------- */
-async function playSnippet(seconds){
+function playSnippet(seconds){
   if (!S.current) return;
   stopAudio();
   const t = S.current;
 
-  if (PLAY_MODE === 'normal'){
-    audio.src = t.src;
-    audio.oncanplay = () => {
-      audio.oncanplay = null;
-      try { audio.currentTime = t.start || 0; } catch(e){}
-      audio.play().then(() => {
-        setPlaying(true);
-        startProgress(seconds);
-        S.snippetTimer = setTimeout(stopAudio, seconds * 1000);
-      }).catch(() => toast('Не удалось воспроизвести: ' + t.src));
-    };
-    audio.onerror = () => {
-      toast('Файл не найден: ' + t.src);
-      setPlaying(false);
-    };
-    audio.load();
-    return;
+  if (PLAY_MODE === 'reverse'){
+    playReverse(t, seconds);
+  } else {
+    playNormal(t, seconds);
   }
+}
 
-  /* REVERSE через Web Audio API */
+function playNormal(t, seconds){
+  audio.src = t.src;
+  audio.playbackRate = 1;
+  audio.oncanplay = function(){
+    audio.oncanplay = null;
+    try { audio.currentTime = t.start || 0; } catch(e){}
+    audio.play().then(function(){
+      setPlaying(true);
+      startProgress(seconds);
+      S.snippetTimer = setTimeout(stopAudio, seconds * 1000);
+    }).catch(function(err){
+      console.warn('play error:', err);
+      toast('Не удалось воспроизвести: ' + t.src);
+      setPlaying(false);
+    });
+  };
+  audio.onerror = function(){
+    toast('Файл не найден: ' + t.src);
+    setPlaying(false);
+  };
+  audio.load();
+}
+
+async function playReverse(t, seconds){
   try {
     if (!S.audioCtx) S.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (S.audioCtx.state === 'suspended') await S.audioCtx.resume();
 
-    // если для этого трека уже есть реверс-буфер — используем
-    let rev = S.reverseBuffer;
-    if (!rev || rev.__src !== t.src){
-      const resp = await fetch(t.src);
+    if (!S.reverseCache) S.reverseCache = {};
+    let rev = S.reverseCache[t.src];
+
+    if (!rev){
+      const url = encodeURI(t.src);
+      console.log('fetch reverse:', url);
+
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+
       const buf = await resp.arrayBuffer();
       const decoded = await S.audioCtx.decodeAudioData(buf);
 
-      rev = S.audioCtx.createBuffer(decoded.numberOfChannels, decoded.length, decoded.sampleRate);
-      for (let ch = 0; ch < decoded.numberOfChannels; ch++){
-        const src = decoded.getChannelData(ch);
-        const dst = rev.getChannelData(ch);
-        const n = src.length;
-        for (let i = 0; i < n; i++) dst[i] = src[n - 1 - i];
+      const n = decoded.length;
+      const ch = decoded.numberOfChannels;
+      rev = S.audioCtx.createBuffer(ch, n, decoded.sampleRate);
+
+      for (let c = 0; c < ch; c++){
+        const s = decoded.getChannelData(c);
+        const d = rev.getChannelData(c);
+        for (let i = 0; i < n; i++) d[i] = s[n - 1 - i];
       }
-      rev.__src = t.src;
-      S.reverseBuffer = rev;
+
+      S.reverseCache[t.src] = rev;
+      console.log('reverse buffer ready, dur =', rev.duration.toFixed(2));
     }
 
-    const src = S.audioCtx.createBufferSource();
-    src.buffer = rev;
-    src.connect(S.audioCtx.destination);
-    src.start(0, 0, seconds);
+    const take = Math.min(seconds, rev.duration);
 
-    S.audioSource = src;
+    const source = S.audioCtx.createBufferSource();
+    source.buffer = rev;
+    source.connect(S.audioCtx.destination);
+    source.start(0, 0, take);
+
+    S.audioSource = source;
     setPlaying(true);
-    startProgress(seconds);
-    S.snippetTimer = setTimeout(stopAudio, seconds * 1000);
-  } catch(e){
-    toast('Реверс не получился: ' + e.message);
+    startProgress(take);
+    S.snippetTimer = setTimeout(stopAudio, take * 1000);
+  } catch(err){
+    console.error('Reverse FAILED:', err);
+    toast('Реверс: ' + err.message);
     setPlaying(false);
   }
 }
@@ -893,9 +901,13 @@ async function playSnippet(seconds){
 function stopAudio(){
   clearTimeout(S.snippetTimer);
   S.snippetTimer = null;
-  if (!audio.paused) audio.pause();
+  try {
+    if (!audio.paused) audio.pause();
+    audio.playbackRate = 1;
+  } catch(e){}
   if (S.audioSource){
     try { S.audioSource.stop(); } catch(e){}
+    try { S.audioSource.disconnect(); } catch(e){}
     S.audioSource = null;
   }
   setPlaying(false);
@@ -917,7 +929,7 @@ function startProgress(seconds){
   f.style.transition = 'none';
   f.style.width = '0%';
   void f.offsetWidth;
-  f.style.transition = `width ${seconds}s linear`;
+  f.style.transition = 'width ' + seconds + 's linear';
   f.style.width = '100%';
 }
 function freezeProgress(){
