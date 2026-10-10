@@ -348,27 +348,12 @@ input, textarea{
         </div>
       </div>
 
-      <!-- ============ ДЛИТЕЛЬНОСТЬ СНИППЕТА ============ -->
-      <div class="rounds">
-        <div class="rounds__label">Длительность сниппета</div>
-        <div class="rounds__opts rounds__opts--2" id="durOpts">
-          <button type="button" class="round-opt" data-dur="short">
-            <span class="round-opt__num">1·2·3</span>
-            <span class="round-opt__lbl">Коротко</span>
-          </button>
-          <button type="button" class="round-opt is-active" data-dur="mid">
-            <span class="round-opt__num">5·10·15</span>
-            <span class="round-opt__lbl">Классика</span>
-          </button>
-        </div>
-      </div>
-
+    
       <div class="rules">
-        <div class="rule"><div class="rule__num" id="ruleNum1">5″</div><div class="rule__lbl">Ступень 1</div><div class="rule__pts">+100 очков</div></div>
-        <div class="rule"><div class="rule__num" id="ruleNum2">10″</div><div class="rule__lbl">Ступень 2</div><div class="rule__pts">+60 очков</div></div>
-        <div class="rule"><div class="rule__num" id="ruleNum3">15″</div><div class="rule__lbl">Ступень 3</div><div class="rule__pts">+30 очков</div></div>
-      </div>
-    </div>
+  <div class="rule"><div class="rule__num" id="ruleNum1">1″</div><div class="rule__lbl">Ступень 1</div><div class="rule__pts">+100 очков</div></div>
+  <div class="rule"><div class="rule__num" id="ruleNum2">2″</div><div class="rule__lbl">Ступень 2</div><div class="rule__pts">+60 очков</div></div>
+  <div class="rule"><div class="rule__num" id="ruleNum3">3″</div><div class="rule__lbl">Ступень 3</div><div class="rule__pts">+30 очков</div></div>
+</div>
 
     <button class="btn" id="startBtn">ВРУБАЙ</button>
     <div class="hint" id="bestHint"></div>
@@ -505,9 +490,8 @@ const TRACKS = [
 const POINTS = [100, 60, 30];
 let TOTAL_ROUNDS = 10;
 let ANSWER_MODE = 'choice';
-let PLAY_MODE = 'normal';      // 'normal' | 'reverse'
-let DUR_MODE = 'mid';          // 'short' | 'mid'
-let STAGES = [5, 10, 15];
+let PLAY_MODE = 'normal';
+let STAGES = [1, 2, 3];
 
 /* ==========================================================
    ЛОГИКА
@@ -630,22 +614,13 @@ document.querySelectorAll('#playOpts .round-opt').forEach(btn => {
     document.querySelectorAll('#playOpts .round-opt').forEach(b => b.classList.remove('is-active'));
     btn.classList.add('is-active');
     PLAY_MODE = btn.dataset.play;
-    flashGlitch();
-  });
-});
-
-/* ---------- ВЫБОР ДЛИТЕЛЬНОСТИ ---------- */
-document.querySelectorAll('#durOpts .round-opt').forEach(btn => {
-  btn.addEventListener('click', (e) => {
-    e.preventDefault();
-    document.querySelectorAll('#durOpts .round-opt').forEach(b => b.classList.remove('is-active'));
-    btn.classList.add('is-active');
-    DUR_MODE = btn.dataset.dur;
-    STAGES = DUR_MODE === 'short' ? [1, 2, 3] : [5, 10, 15];
+    // обычный — 1·2·3, реверс — 5·10·15
+    STAGES = PLAY_MODE === 'reverse' ? [5, 10, 15] : [1, 2, 3];
     updateRulesUI();
     flashGlitch();
   });
 });
+
 
 function roundMode(){
   if (ANSWER_MODE === 'random') return Math.random() < 0.5 ? 'choice' : 'input';
@@ -874,13 +849,10 @@ async function playReverse(t, seconds){
     let rev = S.reverseCache[t.src];
 
     if (!rev){
-      const url = encodeURI(t.src);
+      const url = new URL(t.src, location.href).href;
       console.log('fetch reverse:', url);
 
-      const resp = await fetch(url);
-      if (!resp.ok) throw new Error('HTTP ' + resp.status);
-
-      const buf = await resp.arrayBuffer();
+      const buf = await fetchBuffer(url);
       const decoded = await S.audioCtx.decodeAudioData(buf);
 
       const n = decoded.length;
@@ -894,7 +866,7 @@ async function playReverse(t, seconds){
       }
 
       S.reverseCache[t.src] = rev;
-      console.log('reverse buffer ready, dur =', rev.duration.toFixed(2));
+      console.log('✓ reverse ready, dur =', rev.duration.toFixed(2));
     }
 
     const take = Math.min(seconds, rev.duration);
@@ -908,11 +880,54 @@ async function playReverse(t, seconds){
     setPlaying(true);
     startProgress(take);
     S.snippetTimer = setTimeout(stopAudio, take * 1000);
+    return;
   } catch(err){
-    console.error('Reverse FAILED:', err);
-    toast('Реверс: ' + err.message);
-    setPlaying(false);
+    console.warn('✗ Web Audio реверс упал:', err.message, '— пробую playbackRate = -1');
   }
+
+  try {
+    audio.src = t.src;
+    audio.playbackRate = -1;
+    audio.oncanplay = function(){
+      audio.oncanplay = null;
+      try { audio.currentTime = Math.max(0, (audio.duration || 0) - seconds - 0.05); } catch(e){}
+      audio.play().then(function(){
+        setPlaying(true);
+        startProgress(seconds);
+        S.snippetTimer = setTimeout(stopAudio, seconds * 1000);
+      }).catch(function(e2){
+        console.warn('✗ playbackRate = -1 тоже упал:', e2);
+        audio.playbackRate = 1;
+        playNormal(t, seconds);
+      });
+    };
+    audio.onerror = function(){ playNormal(t, seconds); };
+    audio.load();
+  } catch(e){
+    playNormal(t, seconds);
+  }
+}
+
+function fetchBuffer(url){
+  return fetch(url)
+    .then(function(r){
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.arrayBuffer();
+    })
+    .catch(function(err){
+      console.warn('fetch упал (' + err.message + '), пробую XHR...');
+      return new Promise(function(resolve, reject){
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.responseType = 'arraybuffer';
+        xhr.onload = function(){
+          if (xhr.status >= 200 && xhr.status < 300) resolve(xhr.response);
+          else reject(new Error('XHR HTTP ' + xhr.status));
+        };
+        xhr.onerror = function(){ reject(new Error('XHR network error')); };
+        xhr.send();
+      });
+    });
 }
 
 function stopAudio(){
